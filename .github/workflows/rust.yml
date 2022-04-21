@@ -24,8 +24,6 @@ jobs:
         submodules: true
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
-      with:
-        version: 5.15.3
     - name: Build
       run: cargo build --verbose
     - name: Run tests
