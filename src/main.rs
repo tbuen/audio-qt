@@ -5,6 +5,11 @@ use qmetaobject::prelude::*;
 qrc!(my_resource,
     "/" {
         "qml/main.qml",
+        "qml/Home.qml",
+        "qml/Info.qml",
+        "qml/TrackList.qml",
+        "qml/Track.qml",
+        "qml/TrackInfo.qml",
     },
 );
 

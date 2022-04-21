@@ -1,2 +1,2 @@
 # audio-qt
-Qt App for ESP32 Audio Player 
+[![Rust](https://github.com/tbuen/audio-qt/actions/workflows/rust.yml/badge.svg)](https://github.com/tbuen/audio-qt/actions/workflows/rust.yml)
