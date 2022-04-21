@@ -12,9 +12,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "audio-backend"
+version = "0.1.0"
+
+[[package]]
 name = "audio-qt"
 version = "0.1.0"
 dependencies = [
+ "audio-backend",
  "cstr",
  "qmetaobject",
 ]
