@@ -7,7 +7,7 @@ Page {
     SwipeView {
         id: swipeView
         anchors.fill: parent
-        currentIndex: Component.status == Component.Ready ? pageIndicator.currentIndex : 1
+        currentIndex: 1
 
         TrackList {}
         Track {}
@@ -21,6 +21,5 @@ Page {
 
         currentIndex: swipeView.currentIndex
         count: swipeView.count
-        interactive: true
     }
 }

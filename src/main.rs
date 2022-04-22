@@ -9,6 +9,7 @@ qrc!(my_resource,
         "qml/TrackList.qml",
         "qml/Track.qml",
         "qml/TrackInfo.qml",
+        "images/icon.svg",
     },
 );
 
