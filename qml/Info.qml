@@ -1,13 +1,8 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import RustCode 1.0
 
 Page {
     title: qsTr("Info")
-
-    Info {
-        id: info
-    }
 
     Column {
         anchors.centerIn: parent
@@ -24,7 +19,7 @@ Page {
             horizontalAlignment: Text.AlignHCenter
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             font.bold: true
-            text: info.app_name + " " + info.app_version + "\nbackend " + info.app_backend + "\n\n" + info.esp_project + "xxx " + info.esp_version + "\nesp-idf " + info.esp_idf
+            text: rust.app_project + " " + rust.app_version + "\nbackend " + rust.app_backend + "\n\n" + rust.dev_project + "xxx " + rust.dev_version + "\nesp-idf " + rust.dev_esp_idf
         }
     }
 }

@@ -1,4 +1,4 @@
-use cstr::cstr;
+use backend::{Backend, Response};
 use qmetaobject::prelude::*;
 
 qrc!(my_resource,
@@ -14,54 +14,87 @@ qrc!(my_resource,
 );
 
 #[derive(Default, QObject)]
-struct Api {
+struct Rust {
     base: qt_base_class!(trait QObject),
-    get_greeting: qt_method!(fn(&mut self) -> QString),
-}
 
-impl Api {
-    fn get_greeting(&mut self) -> QString {
-        "Hello World!".into()
-    }
-}
+    backend: Option<Backend>,
 
-#[derive(Default, QObject)]
-struct Info {
-    base: qt_base_class!(trait QObject),
-    app_name: qt_property!(String; READ app_name CONST),
+    app_project: qt_property!(String; READ app_project CONST),
     app_version: qt_property!(String; READ app_version CONST),
     app_backend: qt_property!(String; READ app_backend CONST),
-    esp_project: qt_property!(String; READ esp_project CONST),
-    esp_version: qt_property!(String; READ esp_version CONST),
-    esp_idf: qt_property!(String; READ esp_idf CONST),
+    dev_project: qt_property!(String; NOTIFY dev_project_changed),
+    dev_version: qt_property!(String; NOTIFY dev_version_changed),
+    dev_esp_idf: qt_property!(String; NOTIFY dev_esp_idf_changed),
+
+    dev_project_changed: qt_signal!(),
+    dev_version_changed: qt_signal!(),
+    dev_esp_idf_changed: qt_signal!(),
+
+    get_greeting: qt_method!(fn(&self) -> String),
+    start_backend: qt_method!(fn(&mut self)),
+    stop_backend: qt_method!(fn(&mut self)),
+    idle: qt_method!(fn(&mut self)),
 }
 
-impl Info {
-    fn app_name(&self) -> String {
-        env!("CARGO_PKG_NAME").into()
+impl Rust {
+    fn app_project(&self) -> String {
+        String::from(env!("CARGO_PKG_NAME"))
     }
+
     fn app_version(&self) -> String {
-        env!("VERSION").into()
+        String::from(env!("VERSION"))
     }
+
     fn app_backend(&self) -> String {
-        backend::VERSION.into()
+        String::from(backend::VERSION)
     }
-    fn esp_project(&self) -> String {
-        String::new()
+
+    fn get_greeting(&self) -> String {
+        String::from("Hello World!")
     }
-    fn esp_version(&self) -> String {
-        String::new()
+
+    fn start_backend(&mut self) {
+        if self.backend.is_none() {
+            println!("start backend");
+            self.backend = Some(Backend::new());
+        }
     }
-    fn esp_idf(&self) -> String {
-        String::new()
+
+    fn stop_backend(&mut self) {
+        if let Some(mut b) = self.backend.take() {
+            println!("stop backend");
+            b.stop();
+        }
+    }
+
+    fn idle(&mut self) {
+        if let Some(b) = &self.backend {
+            println!("idle");
+            if let Some(resp) = b.receive() {
+                match resp {
+                    Response::Info(info) => {
+                        println!("Received: {:?}", info);
+                        self.dev_project = String::from(info.project);
+                        self.dev_version = String::from(info.version);
+                        self.dev_esp_idf = String::from(info.esp_idf);
+                        self.dev_project_changed();
+                        self.dev_version_changed();
+                        self.dev_esp_idf_changed();
+                    }
+                }
+            }
+        }
     }
 }
 
 fn main() {
     my_resource();
-    qml_register_type::<Api>(cstr!("RustCode"), 1, 0, cstr!("Api"));
-    qml_register_type::<Info>(cstr!("RustCode"), 1, 0, cstr!("Info"));
+    let qml_obj = QObjectBox::new(Rust {
+        ..Default::default()
+    });
     let mut engine = QmlEngine::new();
-    engine.load_file("qrc:/qml/main.qml".into());
+    engine.set_object_property(QString::from("rust"), qml_obj.pinned());
+    engine.load_file(QString::from("qrc:/qml/main.qml"));
     engine.exec();
+    println!("Exiting gracefully...");
 }
