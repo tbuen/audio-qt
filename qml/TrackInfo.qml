@@ -6,4 +6,5 @@ Page {
         anchors.centerIn: parent
         text: qsTr("Track Info")
     }
+
 }

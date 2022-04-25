@@ -7,4 +7,5 @@ Page {
         text: qsTr("Press me!")
         onClicked: text = rust.get_greeting()
     }
+
 }
