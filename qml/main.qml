@@ -1,12 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 ApplicationWindow {
     id: root
 
     visible: true
-    width: 640
-    height: 480
+    width: 360
+    height: 640
     title: "ESP32 Audio"
     Component.onCompleted: rust.start_backend()
     onClosing: rust.stop_backend()
@@ -23,18 +24,35 @@ ApplicationWindow {
     }
 
     Home {
-    anchors.fill: parent
+        id: home
+
+        anchors.fill: parent
     }
 
     header: ToolBar {
-        ToolButton {
-            icon.name: "info-symbolic"
-            onClicked: infoPopup.open()
-        }
+        RowLayout {
+            anchors.fill: parent
 
-        Label {
-            text: "ESP32 Audio"
-            anchors.centerIn: parent
+            ToolButton {
+                icon.name: "info-symbolic"
+                onClicked: infoPopup.open()
+            }
+
+            Label {
+                text: "ESP32 Audio"
+                elide: Label.ElideRight
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+                Layout.fillWidth: true
+            }
+
+            ToolButton {
+                icon.name: "audio-volume-medium-symbolic"
+                onClicked: {
+                    home.toggleVolume();
+                }
+            }
+
         }
 
     }

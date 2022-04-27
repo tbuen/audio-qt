@@ -1,5 +1,8 @@
 use backend::{Backend, Response};
+use cstr::cstr;
 use qmetaobject::prelude::*;
+use qmetaobject::*;
+use std::collections::HashMap;
 
 qrc!(my_resource,
     "/" {
@@ -87,11 +90,62 @@ impl Rust {
     }
 }
 
+#[derive(Default, Clone)]
+struct Track {
+    filename: String,
+}
+
+#[derive(Default, QObject)]
+struct Tracks {
+    base: qt_base_class!(trait QAbstractListModel),
+    count: qt_property!(i32; READ row_count NOTIFY count_changed),
+    count_changed: qt_signal!(),
+    list: Vec<Track>,
+
+    add: qt_method!(fn(&mut self, filename: String)),
+}
+
+impl Tracks {
+    fn add(&mut self, filename: String) {
+        let end = self.list.len();
+        println!("Add {} at {}", filename, end);
+        (self as &mut dyn QAbstractListModel).begin_insert_rows(end as i32, end as i32);
+        self.list.insert(end, Track { filename });
+        (self as &mut dyn QAbstractListModel).end_insert_rows();
+        self.count_changed();
+    }
+}
+
+impl QAbstractListModel for Tracks {
+    fn row_count(&self) -> i32 {
+        self.list.len() as i32
+    }
+    fn data(&self, index: QModelIndex, role: i32) -> QVariant {
+        let idx = index.row() as usize;
+        println!("Index: {}", idx);
+        if idx < self.list.len() {
+            if role == USER_ROLE {
+                QString::from(self.list[idx].filename.clone()).into()
+            } else {
+                QVariant::default()
+            }
+        } else {
+            QVariant::default()
+        }
+    }
+    fn role_names(&self) -> HashMap<i32, QByteArray> {
+        let mut map = HashMap::new();
+        map.insert(USER_ROLE, "filename".into());
+        map
+    }
+}
+
 fn main() {
     my_resource();
     let qml_obj = QObjectBox::new(Rust {
         ..Default::default()
     });
+    qml_register_type::<Tracks>(cstr!("RustCode"), 1, 0, cstr!("Tracks"));
     let mut engine = QmlEngine::new();
     engine.set_object_property(QString::from("rust"), qml_obj.pinned());
     engine.load_file(QString::from("qrc:/qml/main.qml"));

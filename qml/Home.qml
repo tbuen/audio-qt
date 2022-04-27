@@ -3,6 +3,10 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Page {
+    function toggleVolume() {
+        volume.visible = !volume.visible;
+    }
+
     RowLayout {
         anchors.fill: parent
 
@@ -11,10 +15,11 @@ Page {
             Layout.fillHeight: true
 
             SwipeView {
+                //currentIndex: 1
+
                 id: swipeView
 
                 anchors.fill: parent
-                currentIndex: 1
 
                 TrackList {
                 }
@@ -39,9 +44,12 @@ Page {
         }
 
         ColumnLayout {
+            id: volume
+
             Layout.fillWidth: false
             Layout.fillHeight: true
             Layout.margins: 5
+            visible: false
 
             Slider {
                 id: slider
