@@ -3,8 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Page {
-    title: qsTr("Home")
-
     RowLayout {
         anchors.fill: parent
 

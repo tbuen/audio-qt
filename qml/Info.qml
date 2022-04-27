@@ -49,11 +49,10 @@ Popup {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Qt.application.font.pixelSize * 1.6
                 text: {
-                    if (rust.dev_project != "") {
+                    if (rust.dev_project != "")
                         rust.app_project + " " + rust.app_version + "\nbackend " + rust.app_backend + "\n\n" + rust.dev_project + " " + rust.dev_version + "\nesp-idf " + rust.dev_esp_idf;
-                    } else {
+                    else
                         rust.app_project + " " + rust.app_version + "\nbackend " + rust.app_backend + "\n\nconnection\nfailed";
-                    }
                 }
             }
 

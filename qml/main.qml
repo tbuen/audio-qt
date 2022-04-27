@@ -18,57 +18,22 @@ ApplicationWindow {
         onTriggered: rust.idle()
     }
 
-    Drawer {
-        id: drawer
-
-        interactive: false
-
-        Column {
-            anchors.fill: parent
-
-            ItemDelegate {
-                id: infoItem
-
-                text: qsTr("Info")
-                icon.name: "info-symbolic"
-                onClicked: {
-                    //stackView.push(infoPage)
-                    infoPopup.open();
-                    drawer.close();
-                }
-            }
-
-        }
-
-    }
-
     Info {
         id: infoPopup
     }
 
-    StackView {
-        id: stackView
-
-        anchors.fill: parent
-
-        initialItem: Home {
-        }
-
+    Home {
+    anchors.fill: parent
     }
 
     header: ToolBar {
         ToolButton {
-            text: stackView.depth > 1 ? "\u25C0" : "\u2630"
-            onClicked: {
-                if (stackView.depth > 1)
-                    stackView.pop();
-                else
-                    drawer.open();
-            }
+            icon.name: "info-symbolic"
+            onClicked: infoPopup.open()
         }
 
         Label {
-            text: stackView.currentItem.title
+            text: "ESP32 Audio"
             anchors.centerIn: parent
         }
 
