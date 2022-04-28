@@ -1,8 +1,9 @@
 use backend::{Backend, Response};
-use cstr::cstr;
+use qmetaobject::listmodel::SimpleListModel;
 use qmetaobject::prelude::*;
-use qmetaobject::*;
-use std::collections::HashMap;
+use qmetaobject::SimpleListItem;
+use std::cell::RefCell;
+//use std::collections::HashMap;
 
 qrc!(my_resource,
     "/" {
@@ -28,6 +29,8 @@ struct Rust {
     dev_project: qt_property!(String; NOTIFY dev_project_changed),
     dev_version: qt_property!(String; NOTIFY dev_version_changed),
     dev_esp_idf: qt_property!(String; NOTIFY dev_esp_idf_changed),
+
+    track_list: qt_property!(RefCell<SimpleListModel<Track>>; CONST),
 
     dev_project_changed: qt_signal!(),
     dev_version_changed: qt_signal!(),
@@ -83,6 +86,14 @@ impl Rust {
                         self.dev_project_changed();
                         self.dev_version_changed();
                         self.dev_esp_idf_changed();
+
+                        let mut list = self.track_list.borrow_mut();
+                        list.insert(
+                            0,
+                            Track {
+                                filename: String::from("TRACK01.OGG"),
+                            },
+                        );
                     }
                 }
             }
@@ -90,7 +101,12 @@ impl Rust {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, SimpleListItem)]
+struct Track {
+    pub filename: String,
+}
+
+/*#[derive(Default, Clone)]
 struct Track {
     filename: String,
 }
@@ -138,14 +154,13 @@ impl QAbstractListModel for Tracks {
         map.insert(USER_ROLE, "filename".into());
         map
     }
-}
+}*/
 
 fn main() {
     my_resource();
     let qml_obj = QObjectBox::new(Rust {
         ..Default::default()
     });
-    qml_register_type::<Tracks>(cstr!("RustCode"), 1, 0, cstr!("Tracks"));
     let mut engine = QmlEngine::new();
     engine.set_object_property(QString::from("rust"), qml_obj.pinned());
     engine.load_file(QString::from("qrc:/qml/main.qml"));
