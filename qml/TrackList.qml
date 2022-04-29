@@ -3,29 +3,33 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 Page {
-    ListView {
-        //anchors.margins: 20
-        //clip: true
-        //spacing: 5
+    TabBar {
+        id: bar
 
-        anchors.fill: parent
-        model: rust.track_list
-        delegate: trackDelegate
+        width: parent.width
+
+        TabButton {
+            text: qsTr("Files")
+        }
+
+        TabButton {
+            text: qsTr("Albums")
+        }
+
     }
 
-    Component {
-        //anchors.left: parent.left
-        // anchors.verticalCenter: parent.verticalCenter
-        //anchors.leftMargin: 4
-        //radius: 8
+    StackLayout {
+        width: parent.width
+        anchors.top: bar.bottom
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        currentIndex: bar.currentIndex
 
-        id: trackDelegate
+        FileList {
+        }
 
-        RowLayout {
-            Text {
-                text: filename
-            }
-
+        Item {
         }
 
     }
