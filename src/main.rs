@@ -19,23 +19,29 @@ qrc!(my_resource,
 );
 
 #[derive(Default, QObject)]
+struct Info {
+    base: qt_base_class!(trait QObject),
+    app_project: qt_property!(String; CONST),
+    app_version: qt_property!(String; CONST),
+    app_backend: qt_property!(String; CONST),
+    dev_project: qt_property!(String; CONST),
+    dev_version: qt_property!(String; CONST),
+    dev_esp_idf: qt_property!(String; CONST),
+}
+
+#[derive(Default, QObject)]
 struct Rust {
     base: qt_base_class!(trait QObject),
 
     backend: Option<Backend>,
 
-    app_project: qt_property!(String; READ app_project CONST),
-    app_version: qt_property!(String; READ app_version CONST),
-    app_backend: qt_property!(String; READ app_backend CONST),
-    dev_project: qt_property!(String; NOTIFY dev_project_changed),
-    dev_version: qt_property!(String; NOTIFY dev_version_changed),
-    dev_esp_idf: qt_property!(String; NOTIFY dev_esp_idf_changed),
+    connected: qt_property!(bool; NOTIFY connected_changed),
+    info: qt_property!(RefCell<Info>; NOTIFY info_changed),
 
     track_list: qt_property!(RefCell<SimpleListModel<Track>>; CONST),
 
-    dev_project_changed: qt_signal!(),
-    dev_version_changed: qt_signal!(),
-    dev_esp_idf_changed: qt_signal!(),
+    connected_changed: qt_signal!(),
+    info_changed: qt_signal!(),
 
     get_greeting: qt_method!(fn(&self) -> String),
     start_backend: qt_method!(fn(&mut self)),
@@ -44,18 +50,6 @@ struct Rust {
 }
 
 impl Rust {
-    fn app_project(&self) -> String {
-        String::from(env!("CARGO_PKG_NAME"))
-    }
-
-    fn app_version(&self) -> String {
-        String::from(env!("VERSION"))
-    }
-
-    fn app_backend(&self) -> String {
-        String::from(backend::VERSION)
-    }
-
     fn get_greeting(&self) -> String {
         String::from("Hello World!")
     }
@@ -68,35 +62,39 @@ impl Rust {
     }
 
     fn stop_backend(&mut self) {
-        if let Some(mut b) = self.backend.take() {
-            println!("stop backend");
-            b.stop();
-        }
+        println!("stop backend");
+        self.backend.take().unwrap();
     }
 
     fn idle(&mut self) {
         if let Some(b) = &self.backend {
             println!("idle");
-            if let Some(resp) = b.receive() {
-                match resp {
-                    Response::Info(info) => {
-                        println!("Received: {:?}", info);
-                        self.dev_project = String::from(info.project);
-                        self.dev_version = String::from(info.version);
-                        self.dev_esp_idf = String::from(info.esp_idf);
-                        self.dev_project_changed();
-                        self.dev_version_changed();
-                        self.dev_esp_idf_changed();
-
-                        let mut list = self.track_list.borrow_mut();
-                        list.insert(
-                            0,
-                            Track {
-                                filename: String::from("TRACK01.OGG"),
-                            },
-                        );
-                    }
+            match b.receive() {
+                Some(Response::Connected) => {
+                    self.connected = true;
+                    self.connected_changed();
                 }
+                Some(Response::Disconnected) => {
+                    self.connected = false;
+                    self.connected_changed();
+                }
+                Some(Response::Info(i)) => {
+                    println!("Received: {:?}", i);
+                    let mut info = self.info.borrow_mut();
+                    info.dev_project = i.project;
+                    info.dev_version = i.version;
+                    info.dev_esp_idf = i.esp_idf;
+                    self.info_changed();
+
+                    /*let mut list = self.track_list.borrow_mut();
+                    list.insert(
+                        0,
+                        Track {
+                            filename: String::from("TRACK01.OGG"),
+                        },
+                        );*/
+                }
+                None => {}
             }
         }
     }
@@ -160,6 +158,13 @@ impl QAbstractListModel for Tracks {
 fn main() {
     my_resource();
     let qml_obj = QObjectBox::new(Rust {
+        info: Info {
+            app_project: String::from(env!("CARGO_PKG_NAME")),
+            app_version: String::from(env!("VERSION")),
+            app_backend: String::from(backend::VERSION),
+            ..Default::default()
+        }
+        .into(),
         ..Default::default()
     });
     let mut engine = QmlEngine::new();
